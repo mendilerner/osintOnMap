@@ -4,9 +4,9 @@ import input from "input"; // npm i input
 import { message } from "telegram/client";
 import { NewMessage, NewMessageEvent } from "telegram/events";
 
-const apiId = 27326517;
+const apiId = 112732651723;
 const apiHash = "c273aa7bf455ac5b8c1b503cf1051842";
-const stringSession = new StringSession("1BAAOMTQ5LjE1NC4xNjcuOTEAUEzf+p3p3Pk4wZIu1O6nrpA0F188vM9vXuiMoptqrbTsvvWkXRJwSmQzJ5c67Dli/qkkQAkE8G0d6FbXhF5BYM8Ar3bIC/IpxA7bIgkCKFytvDZ3es694XS9ds8qRFkuzrGowm5zGdChaSycfBnUpXlCCX9rPhEBHkbiYsTnl6LWrudhrK4ExwjWRf/5s56P65hYzMrYZqJ9+WmtIxsUkeukCrmxsf92xMW+lowghE5XFEtshF3lPY+Tp/njrhki5sBOKM6p+dKCL4fM0H+b400wLxgjgWAflbPKi1FJ77/ELUE3WqRCgKYnI+e1RIxYKMwy1cw9hC1F6gqpEFwGOD0="); // fill this later with the value from session.save()
+const stringSession = new StringSession(""); // fill this later with the value from session.save()
 
 (async () => {
   console.log("Loading interactive example...");
