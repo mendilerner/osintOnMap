@@ -35,7 +35,14 @@ Amedi had volunteered to fight for the Israeli military in Gaza following Hamas�
 # Police in Guayaquil confirmed 13 arrests, and police social media posts showed photos of young men lying on the floor with their hands zip-tied behind their backs.
 # The incident followed the kidnappings of at least seven police officers and a series of explosions, a day after Noboa declared a state of emergency.
 # TC, which broadcasts nationally, shares a site with another public broadcaster, Gamavision, and several radio stations."""
+article5 = """
+NYT: Yemen Bombing Reduced the Fighting Potential of the Houthis by only 30%
 
+The US-led Western coalition's strikes on the facilities of the Ansar Allah rebels in Yemen have reduced their offensive potential by no more than 30 per cent. This was reported on Saturday by The New York Times, citing US administration officials.
+
+As the publication points out, even "after strikes on more than 60 targets [in the form of storage and launch facilities] missiles and drones using more than 150 precision munitions have damaged or destroyed only 20% to 30% of the offensive potential of the Houthis." It is noted that most of their weapons "are based on mobile platforms and can be easily moved or hidden".
+
+"""
 amedi1 = """Singer and 'Fauda' star Idan Amedi seriously injured in Gaza fighting"""
 amedi2 = """Star of ‘Fauda’ Netflix series badly injured during combat in Gaza"""
 # gaza= """Israel to withdraw some troops from Gaza but expects fighting will continue through 2024"""
@@ -121,9 +128,9 @@ amedi2 = """Star of ‘Fauda’ Netflix series badly injured during combat in Ga
 
 
 
-from nltk.tokenize import sent_tokenize
-import re , string
-import stopwords
+# from nltk.tokenize import sent_tokenize
+# import re , string
+# import stopwords
 preface = """Jamaica probes police killings of four people in 24 hours, including a teenage boy
 
 SAN JUAN, Puerto Rico (AP) — A government agency in Jamaica says it is investigating four fatal shootings by police officers in the span of 24 hours, including that of a 14-year-old boy.
@@ -131,23 +138,53 @@ SAN JUAN, Puerto Rico (AP) — A government agency in Jamaica says it is investi
 The Independent Commission of Investigations says police killed three people on Tuesday and another on Wednesday, with authorities alleging all four victims opened fire on the officers under investigation for the shootings.
 
 Two of the killings happened in the capital of Kingston, including that of a high school student and another of an unknown victim the commission is trying to identify, according to a statement the commission released Wednesday."""
-preface_tokens = sent_tokenize(preface)
+# preface_tokens = sent_tokenize(preface)
 
-print(preface_tokens)
+# print(preface_tokens)
 
-def clean_text(s):
-        s = s.lower()
-        s = s.split()
-        s = " ".join(s)
-        s = re.sub(f'[{re.escape(string.punctuation)}]', '', s)
-print([clean_text(t) for t in preface_tokens])
-def remove_stop_words(s):
-        stop_words = set(stopwords.words('english'))
-        s = s.split()
-        s = [w for w in s if not w.lower() in stop_words]
-        s = " ".join(s)
-        return s
+# def clean_text(s):
+#         s = s.lower()
+#         s = s.split()
+#         s = " ".join(s)
+#         s = re.sub(f'[{re.escape(string.punctuation)}]', '', s)
+# print([clean_text(t) for t in preface_tokens])
+# def remove_stop_words(s):
+#         stop_words = set(stopwords.words('english'))
+#         s = s.split()
+#         s = [w for w in s if not w.lower() in stop_words]
+#         s = " ".join(s)
+#         return s
 
-from nltk.stem import WordNetLemmatizer
-lemmatizer = WordNetLemmatizer()
-preface_tokens = [lemmatizer.lemmatize(w) for w in preface_tokens]
+import json
+from keybert import KeyBERT
+from kafka import KafkaConsumer
+
+kw_model = KeyBERT(model='all-MiniLM-L6-v2')
+
+from pymongo import MongoClient
+client = MongoClient("mongodb+srv://orders_db:finalProjectTeam4@cluster0.xymtjg3.mongodb.net/rawNews?retryWrites=true&w=majority")
+db = client.rawNews
+rawNews_collection = db.news
+
+# To consume latest messages and auto-commit offsets
+consumer = KafkaConsumer('raw-news',
+                         value_deserializer=lambda m: json.loads(m.decode('utf-8')),
+                         group_id='raw-news-group',
+                         bootstrap_servers=['localhost:9092'])
+for message in consumer:
+    # message value and key are raw bytes -- decode if necessary!
+    # e.g., for unicode: `message.value.decode('utf-8')`
+    if len(message.value['rawNews']) > 10:
+        
+      keywords = kw_model.extract_keywords(message.value['rawNews'], keyphrase_ngram_range=(1, 1), stop_words='english', top_n=5) 
+      extracted_keywords = [item[0] for item in keywords]
+      raw_news = {"source": message.value['source'],
+                "body": message.value['rawNews'],
+                "time": message.value['time'],
+                "keywords": extracted_keywords}
+      post_id = rawNews_collection.insert_one(raw_news).inserted_id
+      print(extracted_keywords)
+    print ("%s:%d:%d: key=%s value=%s" % (message.topic, message.partition,
+                                          message.offset, message.key,
+                                          message.value))
+

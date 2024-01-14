@@ -12,10 +12,15 @@ const rawNewsSchema: Schema<rawNews> = new Schema({
     },
     location: {
         type: String
+    },
+    time: {
+        type: String
+    }, 
+    keywords: {
+        type: Array(String)
     }
-    
 });
-
+// rawNewsSchema.set('timestamps', true)
 const RawNews = mongoose.model<rawNews>('news', rawNewsSchema);
 
 export default RawNews;
