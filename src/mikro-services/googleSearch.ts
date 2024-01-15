@@ -3,11 +3,12 @@ import cron from'node-cron';
 import kafka from '../kafka/kafkaInstance';
 import { getLastNews } from './rawNewsDal';
 import { rawNews } from '../interfaces';
+import { connectToMongoDB } from '../connectionToDB/mongooseConnection';
 
 
 
 const producer = kafka.producer();
-      
+   
 const searchIngoogle = async (keyWordsList: [string]) => {
   let data = JSON.stringify({
     "q": keyWordsList.join(" ")
@@ -27,7 +28,8 @@ const searchIngoogle = async (keyWordsList: [string]) => {
   
   try{
     const response = await axios(config)
-    return response.data
+    console.log(response.data.news);
+    return response.data.news
   }
   catch (error) {
     console.log(error);
@@ -37,43 +39,48 @@ const searchIngoogle = async (keyWordsList: [string]) => {
 //   console.log('running a task every minute');
 // });
 
-cron.schedule('* * * * *', function() {
-  console.log('running a task every minute');
-});
+// cron.schedule('* * * * *', function() {
+//   console.log('running a task every minute');
+// });
 
 const run = async () => {
   await producer.connect();
+  await connectToMongoDB()
 }
-run()
+
 const main = async () => {
-   const newsArray = await getLastNews(6)
-   newsArray.slice(0,3).forEach(async (newsraw) => {
-    const newsdata = await searchIngoogle(newsraw.keywords)
-    
-    if (newsdata.news.length >= 2){
+   const newsArray = await getLastNews(1)
+   newsArray.slice(0,1).forEach(async (newsRaw) => {
+    const newsdata = await searchIngoogle(newsRaw.keywords)
+    console.log(1);
+    if (newsdata.length >= 1){
+      const firstSearchNews = newsdata[0]
       // else can search under 'search' tab not 'news'
-      const rawNews = {source: message.sender?.username, rawNews: message.message ,time: formattedDate}
+      const rawNews = {newsRaw: newsRaw, snippet: firstSearchNews.snippet ,link: firstSearchNews.link}
+      console.log(rawNews);
       try {
         
         // Produce the data to Kafka topic
         await producer.send({
-          topic: 'raw-news',
+          topic: 'processedNews',
           messages: [
             { value: JSON.stringify(rawNews) }
           ]
         });
-        console.log(rawNews);
-        console.log(`Data sent to Kafka at ${formattedDate}`);
+        //console.log(`Data sent to Kafka at ${formattedDate}`);
       } catch (error) {
         console.error('Error occurred:', error);
       }}
    })
 }
-//setInterval((main, 3600*60*6))
+run()
+main()
+//setInterval(main, 1000*3600)
 
 interface processedNews  {
   title: string;
   snippet: string; // news[i].snippet
   linkA: string; // news[i].link
-  rawNews: rawNews
+  rawNews: rawNews;
+
 }

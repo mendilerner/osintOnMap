@@ -18,6 +18,12 @@ const rawNewsSchema: Schema<rawNews> = new Schema({
     }, 
     keywords: {
         type: Array(String)
+    },
+    literalLocation: {
+        type: Array(String)
+    },
+    coordinates: {
+        type: [Number, Number]
     }
 });
 // rawNewsSchema.set('timestamps', true)

@@ -4,5 +4,7 @@ export interface rawNews {
     location?: string;
     time: string;
     keywords: [string];
+    literalLocation: [string];
+    coordinates: [number];
 }
 

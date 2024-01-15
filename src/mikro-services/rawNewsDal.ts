@@ -3,9 +3,9 @@ import RawNews from "../connectionToDB/newsSchema";
 import { connectToMongoDB } from "../connectionToDB/mongooseConnection";
 import { now } from "mongoose";
 
-export const getLastNews = async (lasthHoursAgo: number) => {
+export const getLastNews = async (lastHoursAgo: number) => {
     const currentDate = new Date();
-    const HoursAgo = new Date(Number(currentDate) - lasthHoursAgo * 60 * 60 * 1000); // Subtract 6 hours in milliseconds
+    const HoursAgo = new Date(Number(currentDate) - lastHoursAgo * 60 * 60 * 1000); // Subtract 6 hours in milliseconds
     console.log(HoursAgo.toISOString())
     // const latestNews = await RawNews.aggregate([
     //   {
@@ -25,7 +25,7 @@ export const getLastNews = async (lasthHoursAgo: number) => {
     //   }
     // ]);
     const latestNews = await RawNews.find({
-        "timeA": {
+        "time": {
             $gte: HoursAgo.toISOString(), // Convert date to string for comparison
             $lt: currentDate.toISOString()
         }
