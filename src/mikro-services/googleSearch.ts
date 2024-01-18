@@ -28,7 +28,6 @@ const searchIngoogle = async (keyWordsList: [string]) => {
   
   try{
     const response = await axios(config)
-    console.log(response.data.news);
     return response.data.news
   }
   catch (error) {
@@ -49,15 +48,14 @@ const run = async () => {
 }
 
 const main = async () => {
-   const newsArray = await getLastNews(1)
+   const newsArray = await getLastNews(20)
    newsArray.slice(0,1).forEach(async (newsRaw) => {
     const newsdata = await searchIngoogle(newsRaw.keywords)
-    console.log(1);
     if (newsdata.length >= 1){
       const firstSearchNews = newsdata[0]
       // else can search under 'search' tab not 'news'
-      const rawNews = {newsRaw: newsRaw, snippet: firstSearchNews.snippet ,link: firstSearchNews.link}
-      console.log(rawNews);
+      const rawNews = {...newsRaw._doc, snippet: firstSearchNews.snippet ,link: firstSearchNews.link}
+      console.log("rawNews:",rawNews);
       try {
         
         // Produce the data to Kafka topic

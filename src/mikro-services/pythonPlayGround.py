@@ -190,7 +190,7 @@ for message in consumer:
       producer.send('keywords', {"id": str(raw_news_id), "keywords": extracted_keywords, "source": message.value['source']})
       print(raw_news_id)
       print(extracted_keywords)
-    print ("%s:%d:%d: key=%s value=%s" % (message.topic, message.partition,
+      print ("%s:%d:%d: key=%s value=%s" % (message.topic, message.partition,
                                           message.offset, message.key,
                                           message.value))
 

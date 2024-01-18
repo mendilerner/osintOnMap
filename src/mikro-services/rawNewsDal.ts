@@ -28,7 +28,8 @@ export const getLastNews = async (lastHoursAgo: number) => {
         "time": {
             $gte: HoursAgo.toISOString(), // Convert date to string for comparison
             $lt: currentDate.toISOString()
-        }
+        },
+        matchTo: { $exists: false }
     });
     console.log(latestNews.length);
     //console.log(latestNews);

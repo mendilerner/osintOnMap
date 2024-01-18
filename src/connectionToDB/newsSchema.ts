@@ -24,6 +24,13 @@ const rawNewsSchema: Schema<rawNews> = new Schema({
     },
     coordinates: {
         type: [Number, Number]
+    },
+    matchTo:{
+        type: String
+    },
+    rating: {
+        type: Number,
+        default: 0
     }
 });
 // rawNewsSchema.set('timestamps', true)
