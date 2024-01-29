@@ -4,6 +4,7 @@ import {  KafkaMessage } from 'kafkajs';
 import { processedNews } from './itypes';
 import pool from './dataAccess/postgressConnection';
 import { ObjectId } from 'mongoose';
+import pubsub from './pubsub';
 const consumer = kafka.consumer({ groupId: 'storeInRedisGroup' });
 const redisClient = createClient({
     url: 'redis://:mendi1234@127.0.0.1:6379'
@@ -27,6 +28,10 @@ const storeNewMessagetoRedis = async (processedNews: processedNews, newsId:strin
           await redisClient.json.set(`news_report:${newsId}`, '$', processedNews)
           await redisClient.expire(`news_report:${newsId}`, DEFAULT_EXPIRATION)
       }
+      else{
+        await redisClient.json.merge(`news_report:${newsId}`, '$.rating', processedNews.rating as number)
+        await redisClient.expire(`news_report:${newsId}`, DEFAULT_EXPIRATION)
+      }
       console.log(`Data for ${processedNews._id} inserted successfully to redis.`);
     }
     catch(err){
@@ -38,10 +43,10 @@ const storeInPostgres = async (processedNews:processedNews) => {
     try{
       const { _id, source, link, snippet, body, keywords, time, rating, matchTo, coordinates} = processedNews
       const news = await pool.query(
-        "INSERT INTO news ( _id, source, link, snippet, body, keywords, time, rating, matchTo, coordinates) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
+        "INSERT INTO news ( _id, source, link, snippet, body, keywords, time, rating, matchTo, coordinates) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ON CONFLICT ON CONSTRAINT news_pkey DO NOTHING RETURNING *",
         [ _id, source, link, snippet, body, keywords, time, rating, matchTo, coordinates]
       );
-      console.log(`Data for ${processedNews._id} inserted successfully to redis.`);
+      console.log(`Data for ${processedNews._id} inserted successfully to postgress.`);
       return news.rows;
     }
     catch (err){
@@ -62,6 +67,7 @@ const processMessage = async ( message : KafkaMessage) => {
       console.log(newsId);
       await storeNewMessagetoRedis(processedNews,newsId)
       await storeInPostgres(processedNews)
+      pubsub.publish("newOrUpdatedNews", { newOrUpdatedNews: processedNews });
     } catch (error) {
       console.error(`Error processing message: ${error}`);
     }

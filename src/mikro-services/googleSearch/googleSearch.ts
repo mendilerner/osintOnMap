@@ -1,9 +1,9 @@
 import axios from 'axios'
 import cron from'node-cron';
-import kafka from '../kafka/kafkaInstance';
+import kafka from '../../kafka/kafkaInstance';
 import { getLastNews } from './rawNewsDal';
-import { rawNews } from '../interfaces';
-import { connectToMongoDB } from '../connectionToDB/mongooseConnection';
+import { rawNews } from '../../interfaces';
+import { connectToMongoDB } from '../../connectionToDB/mongooseConnection';
 
 
 
@@ -48,8 +48,8 @@ const run = async () => {
 }
 
 const main = async () => {
-   const newsArray = await getLastNews(20)
-   newsArray.slice(0,1).forEach(async (newsRaw) => {
+   const newsArray = await getLastNews(2)
+   newsArray.slice(0,3).forEach(async (newsRaw) => {
     const newsdata = await searchIngoogle(newsRaw.keywords)
     if (newsdata.length >= 1){
       const firstSearchNews = newsdata[0]
@@ -71,8 +71,10 @@ const main = async () => {
       }}
    })
 }
-run()
-main()
+run().then(() => {
+  main()
+})
+
 //setInterval(main, 1000*3600)
 
 interface processedNews  {

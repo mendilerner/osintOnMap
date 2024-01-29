@@ -1,7 +1,7 @@
 import {Api, TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions";
 import axios from 'axios';
-import kafka from '../kafka/kafkaInstance'
+import kafka from '../../kafka/kafkaInstance'
 import input from "input"; // npm i input
 import { message } from "telegram/client";
 import { NewMessage, NewMessageEvent } from "telegram/events";
@@ -55,7 +55,7 @@ const producer = kafka.producer();
     }
     else{
       console.log("outsider senderID: ", message.senderId);
-      //console.log("message: ", message.message);
+      console.log("message: ", message.message);
     }
 }
 client.addEventHandler(eventPrint, new NewMessage({}));
